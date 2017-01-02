@@ -38,24 +38,43 @@
 				{
 							$scope.app = "Lista Telefonica";
 							$scope.contatos = [];
-							$scope.operadoras = [
-								{nome: "Vivo", codigo: 15, categoria: "Celular", preco: 2},
-								{nome: "Oi", codigo: 14, categoria: "Celular", preco: 1},
-								{nome: "Tim", codigo:51, categoria: "Celular", preco: 3},
-								{nome: "GVT", codigo:25, categoria: "Fixo", preco: 1},
-								{nome: "Embratel", codigo:21, categoria: "Fixo", preco: 2}
-							];
+							$scope.operadoras = [];
+
+							function sendData($scope, data) {
+								console.log(data);
+							    $http({
+							        url: 'http://localhost:8080/ajaxFile/contatos',
+							        method: "POST",
+							        data: { 'nome': $scope.contato.nome, 
+								        	'telefone': $scope.contato.telefone,
+								        	'data': new Date(),
+								        	'operadora':{
+										        "nome": $scope.contato.operadora.nome,
+										        "codigo": $scope.contato.operadora.codigo,
+										        "categoria": $scope.contato.operadora.categoria,
+										        "preco": $scope.contato.operadora.preco
+									        	}
+					        				}
+							    }).then(console.log(data));
+							}
 							$scope.adicionarContato = function (contato){
-								$scope.contatos.push(angular.copy(contato));
-								delete $scope.contato;
-								$scope.contatoForm.$setPristine();
+								contato.data = new Date();
+								$http.post("http://localhost:8080/ajaxFile/contatos", contato).then(function (data){
+									sendData($scope, data);
+									delete $scope.contato;
+									$scope.contatoForm.$setPristine();
+									carregarContatos();
+								});	
+						//		$scope.contatos.push(angular.copy(contato));
 							};
+
 							$scope.apagarContatos = function(contatos){
 								$scope.contatos = contatos.filter(function(contato){
 									if(!contato.selecionado)
 										return contato;
 									});
 							};
+
 							$scope.isContatoSelecionado = function(contatos){
 								return contatos.some(function(contato) {
 									return contato.selecionado;
@@ -69,12 +88,21 @@
 							var carregarContatos = function() {
 								$http.get("http://localhost:8080/ajaxFile/contatos").then(function(data){
 									var contatosArray = data;
-									console.log(contatosArray.data);
+									//console.log(contatosArray.data);
 									$scope.contatos = data.data;
 								});
 							}
 
+							var carregarOperadoras = function(){
+								$http.get("http://localhost:8080/ajaxFile/operadoras").then(function(data){
+									var operadorasArray = data;
+									//console.log(operadorasArray.data);
+									$scope.operadoras = data.data;
+								});
+							}
+
 							carregarContatos();
+							carregarOperadoras();
 				});
 			</script>
 	</head>
